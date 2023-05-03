@@ -22,6 +22,19 @@ def website(message):
     markup.add(website, start, help)
     bot.send_message(message.chat.id, 'You can go to site /website', reply_markup=markup)
 
+@bot.callback_query_handler(func=lambda call: True)
+def callback(call):
+    if call.data != 'else':
+        values = call.data.upper().split('/')
+        res = currency.convert(amount, values[0], values[1])
+        bot.send_message(call.message.chat.id, f'Come out: {round(res, 2)}. You can re-enter the amount')
+        bot.register_next_step_handler(call.message, summa)
+    else:
+        if call.data == 'help':
+            website(call.message)
+        else:
+            bot.send_message(call.message.chat.id, 'Enter a pair of values via / ')
+            bot.register_next_step_handler(call.message, my_currency)
 
 def summa(message):
     global amount
@@ -46,19 +59,6 @@ def summa(message):
         bot.send_message(message.chat.id, 'Number must be greated then 0')
         bot.register_next_step_handler(message, summa)
 
-@bot.callback_query_handler(func=lambda call: True)
-def callback(call):
-    if call.data != 'else':
-        values = call.data.upper().split('/')
-        res = currency.convert(amount, values[0], values[1])
-        bot.send_message(call.message.chat.id, f'Come out: {round(res, 2)}. You can re-enter the amount')
-        bot.register_next_step_handler(call.message, summa)
-    else:
-        if call.data == 'help':
-            website(call.message)
-        else:
-            bot.send_message(call.message.chat.id, 'Enter a pair of values via / ')
-            bot.register_next_step_handler(call.message, my_currency)
 
 def my_currency(message):
     try:
@@ -75,11 +75,5 @@ def website(message):
     markup = types.InlineKeyboardMarkup()
     markup.add(types.InlineKeyboardButton('Go to Website', url="https://www.xe.com/currencyconverter"))
     bot.send_message(message.chat.id, 'Currency Converter', reply_markup=markup)
-
-
-@bot.message_handler(content_types=['text'])
-def get_user_text(message):
-        bot.send_message(message.chat.id, "I don't understand you", parse_mode='html')
-
 
 bot.polling(none_stop=True)
